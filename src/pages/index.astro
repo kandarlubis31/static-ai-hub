@@ -12,10 +12,10 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
 <MainLayout title="Static AI Hub - Library">
   <section class="text-center mb-8 pt-6">
     <h1 class="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-      Prompt Library
+      Koleksi Prompt
     </h1>
     <p class="text-gray-600 dark:text-gray-400 text-lg">
-      Koleksi {allPrompts.length}+ prompt siap pakai. Hemat waktu, kerja cerdas.
+      Ada {allPrompts.length}+ prompt tinggal pakai. Praktis, bikin kerjaan makin gampang.
     </p>
   </section>
 
@@ -44,17 +44,17 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
       </div>
-      <p class="text-xl font-medium text-gray-900 dark:text-white">Tidak ada prompt yang cocok</p>
-      <p class="text-gray-500 mt-2">Coba ganti kata kunci atau reset filter.</p>
+      <p class="text-xl font-medium text-gray-900 dark:text-white">Wah, promptnya gak ketemu nih</p>
+      <p class="text-gray-500 mt-2">Coba ganti kata kunci atau reset filter ya.</p>
     </div>
 
     <div id="pagination-controls" class="mt-12 text-center hidden">
-      <p class="text-sm text-gray-500 mb-4">Menampilkan <span id="showing-count">0</span> dari <span id="total-count">0</span> prompt</p>
+      <p class="text-sm text-gray-500 mb-4">Lagi nunjukin <span id="showing-count">0</span> dari <span id="total-count">0</span> prompt</p>
       <button 
         id="load-more-btn"
         class="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95"
       >
-        Tampilkan Lebih Banyak ↓
+        Muat Lebih Banyak ↓
       </button>
     </div>
   </div>
@@ -64,7 +64,7 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
   import { addToast } from '../lib/toastStore';
 
   // --- CONFIGURATION ---
-  const ITEMS_PER_PAGE = 9; // Tampilkan 9 kartu di awal
+  const ITEMS_PER_PAGE = 9; // Tampilin 9 kartu di awal
   let visibleLimit = ITEMS_PER_PAGE;
 
   // --- SELECTORS ---
@@ -95,7 +95,7 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
             id="${p.id}"
           >
             <div class="absolute top-0 right-0 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 text-[10px] font-bold px-3 py-1 rounded-bl-xl z-20">
-              PERSONAL DRAFT
+              DRAFT PRIBADI
             </div>
 
             <div class="p-6 pb-2">
@@ -130,7 +130,7 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
                   title="Copy Prompt"
                >
                   <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                  <span>Copy</span>
+                  <span>Salin</span>
                </button>
             </div>
           </article>
@@ -222,7 +222,7 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
             await navigator.clipboard.writeText(text);
             addToast('Prompt berhasil disalin!', 'success');
         } catch (err) {
-            addToast('Gagal copy text', 'error');
+            addToast('Gagal nyalin teks', 'error');
         }
         return;
     }
@@ -230,7 +230,7 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
     // Handle DELETE (Hanya Personal)
     const deleteBtn = target.closest('.btn-delete');
     if (deleteBtn) {
-        if(!confirm('Yakin ingin menghapus draft ini selamanya?')) return;
+        if(!confirm('Yakin mau hapus draft ini?')) return;
         
         const btnElement = deleteBtn as HTMLElement;
         const idToDelete = btnElement.dataset.id;
@@ -252,7 +252,7 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
                 cardElement.remove();
                 // Update pagination setelah hapus
                 updateGridVisibility();
-                addToast('Draft berhasil dihapus.', 'info');
+                addToast('Draft udah dihapus.', 'info');
             }, 300);
         }
     }
