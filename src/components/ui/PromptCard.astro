@@ -1,0 +1,58 @@
+---
+import CopyButton from '../interactive/CopyButton';
+import RatingSystem from '../interactive/RatingSystem';
+
+// Props yang diterima komponen ini
+interface Props {
+  id: string;
+  title: string;
+  description: string;
+  role: string;
+  category: string;
+  tags: string[];
+  body: string; // Isi prompt text
+}
+
+const { id, title, description, role, category, tags, body } = Astro.props;
+---
+
+<article 
+  class="prompt-card group relative flex flex-col justify-between p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300"
+  data-role={role} 
+  data-category={category}
+>
+  <div>
+    <div className="flex justify-between items-start mb-4">
+      <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+        {role}
+      </span>
+      <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">
+        {category}
+      </span>
+    </div>
+
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+      <a href={`/prompt/${id}`} class="hover:underline focus:outline-none">
+        <span class="absolute inset-0" aria-hidden="true"></span>
+        {title}
+      </a>
+    </h3>
+    
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+      {description}
+    </p>
+  </div>
+
+  <div class="mb-4">
+    <div class="relative bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800 p-4 font-mono text-sm text-gray-700 dark:text-gray-300 overflow-hidden">
+      <div class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent pointer-events-none"></div>
+      
+      <p class="line-clamp-3 whitespace-pre-wrap">{body}</p>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+    <RatingSystem client:visible promptId={id} />
+    <CopyButton client:visible text={body} />
+  </div>
+</article>

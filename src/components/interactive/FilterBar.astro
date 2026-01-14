@@ -1,0 +1,112 @@
+---
+import { Search, XCircle } from 'lucide-preact';
+
+interface Props {
+  roles: string[];
+  categories: string[];
+}
+
+const { roles, categories } = Astro.props;
+---
+
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all">
+  
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+    
+    <div class="relative md:col-span-4">
+      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <Search class="w-4 h-4 text-gray-400" />
+      </div>
+      <input 
+        type="text" 
+        id="search-input" 
+        class="w-full h-10 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 px-2.5" 
+        placeholder="Cari kata kunci..." 
+      />
+    </div>
+
+    <div class="md:col-span-3">
+      <select id="role-filter" class="w-full h-10 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 cursor-pointer">
+        <option value="all">Semua Role</option>
+        {roles.map((role) => <option value={role}>{role}</option>)}
+      </select>
+    </div>
+
+    <div class="md:col-span-3">
+      <select id="category-filter" class="w-full h-10 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 cursor-pointer">
+        <option value="all">Semua Kategori</option>
+        {categories.map((cat) => <option value={cat}>{cat}</option>)}
+      </select>
+    </div>
+
+    <div class="md:col-span-2">
+      <button 
+        id="reset-filters" 
+        class="w-full h-10 flex items-center justify-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-lg dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 dark:hover:bg-red-900/30 transition-colors"
+      >
+        <XCircle class="w-4 h-4" />
+        Reset
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // LOGIC FILTER SAMA SEPERTI SEBELUMNYA
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const roleSelect = document.getElementById('role-filter') as HTMLSelectElement;
+  const categorySelect = document.getElementById('category-filter') as HTMLSelectElement;
+  const resetButton = document.getElementById('reset-filters') as HTMLButtonElement;
+  const cards = document.querySelectorAll('.prompt-card');
+  const noResultMsg = document.getElementById('no-results');
+
+  function debounce(func: Function, wait: number) {
+    let timeout: any;
+    return function executedFunction(...args: any[]) {
+      const later = () => { clearTimeout(timeout); func(...args); };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  function filterPrompts() {
+    const query = searchInput.value.toLowerCase();
+    const role = roleSelect.value;
+    const cat = categorySelect.value;
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const htmlCard = card as HTMLElement;
+      const cardRole = htmlCard.dataset.role;
+      const cardCat = htmlCard.dataset.category;
+      const cardContent = htmlCard.textContent?.toLowerCase() || '';
+
+      const matchSearch = cardContent.includes(query);
+      const matchRole = role === 'all' || cardRole === role;
+      const matchCat = cat === 'all' || cardCat === cat;
+
+      if (matchSearch && matchRole && matchCat) {
+        htmlCard.style.display = 'flex';
+        visibleCount++;
+      } else {
+        htmlCard.style.display = 'none';
+      }
+    });
+
+    if (noResultMsg) {
+      noResultMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  }
+
+  searchInput?.addEventListener('input', debounce(filterPrompts, 300));
+  roleSelect?.addEventListener('change', filterPrompts);
+  categorySelect?.addEventListener('change', filterPrompts);
+  
+  resetButton?.addEventListener('click', () => {
+    searchInput.value = '';
+    roleSelect.value = 'all';
+    categorySelect.value = 'all';
+    filterPrompts();
+  });
+</script>

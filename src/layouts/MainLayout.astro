@@ -1,0 +1,119 @@
+---
+import ThemeToggle from '../components/interactive/ThemeToggle';
+import Footer from '../components/ui/Footer.astro';
+import ToastContainer from '../components/ui/ToastContainer'; // IMPORT TOAST
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const { 
+  title, 
+  description = "Kumpulan AI Prompt dan Tools Sederhana untuk Developer & Kreator.",
+  image = "/og-image.png" 
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost:4321');
+---
+
+<!doctype html>
+<html lang="id" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(image, Astro.url)} />
+
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(image, Astro.url)} />
+    
+    <script is:inline>
+      const getTheme = () => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) return localStorage.getItem('theme');
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+        return 'light';
+      };
+      if (getTheme() === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    </script>
+  </head>
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300">
+    
+    <nav class="sticky top-0 z-50 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
+      <div class="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
+        
+        <a href="/" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 hover:opacity-80 transition-opacity">
+          Static AI Hub
+        </a>
+
+        <div class="hidden md:flex items-center gap-6">
+          <a href="/" class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Library</a>
+          <a href="/builder" class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Prompt Builder</a>
+          <ThemeToggle client:load />
+        </div>
+        
+        <div class="md:hidden flex items-center gap-2">
+          <ThemeToggle client:load />
+          <button id="mobile-menu-btn" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle menu">
+            <svg id="icon-menu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            <svg id="icon-close" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu" class="hidden absolute top-16 left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg md:hidden">
+        <ul class="flex flex-col p-4 space-y-2 font-medium">
+          <li>
+            <a href="/" class="mobile-link block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">📚 Library</a>
+          </li>
+          <li>
+            <a href="/builder" class="mobile-link block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">🛠️ Prompt Builder</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-6xl mx-auto px-4 py-8 relative">
+      <slot />
+    </main>
+
+    <Footer />
+    
+    <ToastContainer client:load />
+
+    <script>
+      const btn = document.getElementById('mobile-menu-btn');
+      const menu = document.getElementById('mobile-menu');
+      const iconMenu = document.getElementById('icon-menu');
+      const iconClose = document.getElementById('icon-close');
+      const links = document.querySelectorAll('.mobile-link');
+
+      const toggleMenu = () => {
+        menu?.classList.toggle('hidden');
+        iconMenu?.classList.toggle('hidden');
+        iconClose?.classList.toggle('hidden');
+      };
+
+      btn?.addEventListener('click', toggleMenu);
+
+      links.forEach(link => {
+        link.addEventListener('click', () => {
+          if (!menu?.classList.contains('hidden')) toggleMenu();
+        });
+      });
+    </script>
+  </body>
+</html>

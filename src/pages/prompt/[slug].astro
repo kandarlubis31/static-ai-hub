@@ -1,0 +1,84 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import CopyButton from '../../components/interactive/CopyButton';
+import RatingSystem from '../../components/interactive/RatingSystem';
+import { getCollection } from 'astro:content';
+
+// 1. Fungsi Wajib: Kasih tahu Astro halaman apa aja yang harus dibangun
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('prompts');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+
+// 2. Ambil data untuk halaman ini
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<MainLayout title={`${entry.data.title} - AI Prompt`}>
+  <div class="max-w-4xl mx-auto">
+    
+    <a href="/" class="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 mb-6 transition-colors">
+      ← Kembali ke Library
+    </a>
+
+    <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      
+      <div class="p-8 border-b border-gray-100 dark:border-gray-700">
+        <div class="flex gap-3 mb-4">
+          <span class="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
+            {entry.data.role}
+          </span>
+          <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+            {entry.data.category}
+          </span>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+          {entry.data.title}
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+          {entry.data.description}
+        </p>
+      </div>
+
+      <div class="p-8 bg-gray-50 dark:bg-gray-900/50">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Prompt Text</h2>
+          <CopyButton client:load text={entry.body} />
+        </div>
+
+        <div class="relative group">
+          <div class="bg-gray-900 text-gray-100 rounded-xl p-6 font-mono text-sm leading-loose shadow-inner border border-gray-800 whitespace-pre-wrap selection:bg-blue-500 selection:text-white">
+            {entry.body}
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+          <span class="text-sm font-medium text-gray-500">Rate prompt ini:</span>
+          <RatingSystem client:load promptId={entry.slug} />
+        </div>
+        
+        <button 
+          id="share-btn"
+          class="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline flex items-center gap-2"
+        >
+          🔗 Bagikan Link
+        </button>
+      </div>
+
+    </article>
+  </div>
+</MainLayout>
+
+<script>
+  // Script kecil untuk copy link halaman ini
+  document.getElementById('share-btn')?.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link halaman berhasil dicopy!');
+  });
+</script>
