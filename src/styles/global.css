@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 @layer components {
+  /* Class Utility untuk Form Builder agar kodingan React bersih */
   .form-input {
-    @apply w-full p-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all;
+    @apply w-full p-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 dark:text-gray-100;
   }
   
   .form-label {
@@ -12,6 +13,25 @@
   .preset-btn {
     @apply px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md border border-gray-200 dark:border-gray-600 transition-colors;
   }
+}
+
+/* Animasi Toast Notification */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 /* Custom Scrollbar untuk Preview Box */
@@ -27,12 +47,4 @@
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #4b5563; /* gray-600 */
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-slide-in {
-  animation: slideIn 0.3s ease-out forwards;
 }

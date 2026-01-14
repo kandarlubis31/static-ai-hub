@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'preact/hooks';
 import { Copy, Trash2, Zap, Save, Check } from 'lucide-preact';
-import { addToast } from '../../lib/toastStore'; // Import Toast Store
+import { addToast } from '../../lib/toastStore';
 
-// Interface biar Type Safe (Saran Z AI)
+// Definisi Tipe Data Form
 interface FormData {
   role: string;
   task: string;
@@ -11,6 +11,34 @@ interface FormData {
   format: string;
   language: string;
 }
+
+// Data Presets (Dipisah biar rapi)
+const PRESETS = {
+  coding: {
+    role: 'Senior Software Engineer',
+    task: 'Refactor kode berikut agar lebih bersih, modular, dan mengikuti prinsip SOLID.',
+    context: 'Kode ini ditulis oleh junior developer dan menggunakan terlalu banyak nested loops.',
+    tone: 'Technical & Constructive',
+    format: 'Code Block with Explanation',
+    language: 'English'
+  },
+  writing: {
+    role: 'Copywriter Profesional',
+    task: 'Buat 5 variasi headline untuk iklan Facebook produk kopi kekinian.',
+    context: 'Target audiens adalah pekerja kantoran usia 25-35 tahun yang butuh energi pagi.',
+    tone: 'Persuasive & Energetic',
+    format: 'List',
+    language: 'Indonesia'
+  },
+  learning: {
+    role: 'Dosen Fisika Kuantum',
+    task: 'Jelaskan konsep "Schrödinger\'s cat" kepada saya.',
+    context: 'Saya tidak punya background sains, jadi gunakan analogi sehari-hari.',
+    tone: 'Educational & Fun',
+    format: 'Analogy + Summary',
+    language: 'Indonesia'
+  }
+};
 
 export default function PromptBuilder() {
   const defaultState: FormData = {
@@ -24,38 +52,12 @@ export default function PromptBuilder() {
 
   const [formData, setFormData] = useState<FormData>(defaultState);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  // State 'saved' dan 'copied' lokal kita hapus karena sudah digantikan Toast Global
+  
+  // State 'saved' & 'copied' lokal dihapus karena pakai Global Toast
 
   // --- LOGIC PRESET ---
-  const applyPreset = (type: 'coding' | 'writing' | 'learning') => {
-    if (type === 'coding') {
-      setFormData({
-        role: 'Senior Software Engineer',
-        task: 'Refactor kode berikut agar lebih bersih, modular, dan mengikuti prinsip SOLID.',
-        context: 'Kode ini ditulis oleh junior developer dan menggunakan terlalu banyak nested loops.',
-        tone: 'Technical & Constructive',
-        format: 'Code Block with Explanation',
-        language: 'English'
-      });
-    } else if (type === 'writing') {
-      setFormData({
-        role: 'Copywriter Profesional',
-        task: 'Buat 5 variasi headline untuk iklan Facebook produk kopi kekinian.',
-        context: 'Target audiens adalah pekerja kantoran usia 25-35 tahun yang butuh energi pagi.',
-        tone: 'Persuasive & Energetic',
-        format: 'List',
-        language: 'Indonesia'
-      });
-    } else if (type === 'learning') {
-      setFormData({
-        role: 'Dosen Fisika Kuantum',
-        task: 'Jelaskan konsep "Schrödinger\'s cat" kepada saya.',
-        context: 'Saya tidak punya background sains, jadi gunakan analogi sehari-hari.',
-        tone: 'Educational & Fun',
-        format: 'Analogy + Summary',
-        language: 'Indonesia'
-      });
-    }
+  const applyPreset = (type: keyof typeof PRESETS) => {
+    setFormData(PRESETS[type]);
     addToast('Preset berhasil diterapkan!', 'info');
   };
 
@@ -65,12 +67,13 @@ export default function PromptBuilder() {
     addToast('Form berhasil direset', 'info');
   };
 
+  // Type Safe Event Handler
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // --- USE MEMO (Optimasi Z AI) ---
+  // --- USE MEMO (Optimasi) ---
   const generatedPrompt = useMemo(() => {
     return `Act as a ${formData.role || '[ROLE]'}.
 Your task is to: ${formData.task || '[TASK]'}
@@ -91,7 +94,7 @@ Output format: ${formData.format}.`;
     }
   };
 
-  // --- LOGIC SAVE (Fitur Kita Tetap Ada) ---
+  // --- LOGIC SAVE (LocalStorage) ---
   const handleSave = () => {
     if (!formData.role || !formData.task) {
       addToast('Isi minimal Role dan Task dulu bos!', 'error');
@@ -111,10 +114,13 @@ Output format: ${formData.format}.`;
       slug: '#'
     };
 
-    const existing = JSON.parse(localStorage.getItem('my_prompts') || '[]');
-    localStorage.setItem('my_prompts', JSON.stringify([newPrompt, ...existing]));
-
-    addToast('Draft berhasil disimpan ke Library!', 'success');
+    try {
+      const existing = JSON.parse(localStorage.getItem('my_prompts') || '[]');
+      localStorage.setItem('my_prompts', JSON.stringify([newPrompt, ...existing]));
+      addToast('Draft berhasil disimpan ke Library!', 'success');
+    } catch (e) {
+      addToast('Gagal menyimpan, storage penuh?', 'error');
+    }
   };
 
   return (
@@ -200,7 +206,6 @@ Output format: ${formData.format}.`;
             </div>
             <div>
               <label className="form-label">Bahasa</label>
-              {/* Dropdown Bahasa (Peningkatan UX Z AI) */}
               <select name="language" value={formData.language} onChange={handleChange} className="form-input">
                 <option>Indonesia</option>
                 <option>English</option>
