@@ -10,11 +10,13 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
 ---
 
 <MainLayout title="Static AI Hub - Library">
-  <section class="text-center mb-10 pt-4">
-    <h1 class="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+  <section class="text-center mb-8 pt-6">
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
       Prompt Library
     </h1>
-    <p class="text-gray-600 dark:text-gray-400">Official Prompts + Personal Drafts.</p>
+    <p class="text-gray-600 dark:text-gray-400 text-lg">
+      Koleksi {allPrompts.length}+ prompt siap pakai. Hemat waktu, kerja cerdas.
+    </p>
   </section>
 
   <section class="sticky top-16 z-40 py-4 mb-6 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50 transition-colors -mx-4 px-4 md:mx-0 md:px-0 md:bg-transparent md:backdrop-blur-none md:border-none">
@@ -23,91 +25,272 @@ const uniqueCategories = [...new Set(allPrompts.map(p => p.data.category))];
     </div>
   </section>
 
-  <div id="prompt-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
-    {allPrompts.map((prompt) => (
-      <PromptCard 
-        id={prompt.slug}
-        title={prompt.data.title}
-        description={prompt.data.description}
-        role={prompt.data.role}
-        category={prompt.data.category}
-        tags={prompt.data.tags}
-        body={prompt.body}
-      />
-    ))}
+  <div id="prompt-container" class="min-h-[50vh] pb-10">
+    <div id="prompt-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {allPrompts.map((prompt) => (
+        <PromptCard 
+          id={prompt.slug}
+          title={prompt.data.title}
+          description={prompt.data.description}
+          role={prompt.data.role}
+          category={prompt.data.category}
+          tags={prompt.data.tags}
+          body={prompt.body}
+        />
+      ))}
+      </div>
     
+    <div id="no-results" class="hidden text-center py-20 animate-fade-in">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </div>
+      <p class="text-xl font-medium text-gray-900 dark:text-white">Tidak ada prompt yang cocok</p>
+      <p class="text-gray-500 mt-2">Coba ganti kata kunci atau reset filter.</p>
     </div>
 
-  <div id="no-results" class="hidden text-center py-20">
-    <p class="text-xl text-gray-500">Tidak ada prompt yang cocok 😔</p>
+    <div id="pagination-controls" class="mt-12 text-center hidden">
+      <p class="text-sm text-gray-500 mb-4">Menampilkan <span id="showing-count">0</span> dari <span id="total-count">0</span> prompt</p>
+      <button 
+        id="load-more-btn"
+        class="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95"
+      >
+        Tampilkan Lebih Banyak ↓
+      </button>
+    </div>
   </div>
 </MainLayout>
 
 <script>
   import { addToast } from '../lib/toastStore';
 
+  // --- CONFIGURATION ---
+  const ITEMS_PER_PAGE = 9; // Tampilkan 9 kartu di awal
+  let visibleLimit = ITEMS_PER_PAGE;
+
+  // --- SELECTORS ---
   const grid = document.getElementById('prompt-grid');
-  
+  const noResult = document.getElementById('no-results');
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  const paginationControls = document.getElementById('pagination-controls');
+  const showingCountLabel = document.getElementById('showing-count');
+  const totalCountLabel = document.getElementById('total-count');
+
+  // --- 1. LOAD PERSONAL DRAFTS ---
   function loadPersonalPrompts() {
     const saved = localStorage.getItem('my_prompts');
     if (!saved || !grid) return;
 
     try {
       const prompts = JSON.parse(saved);
-      
-      // Looping data storage dan inject HTML Card
+      // Urutkan dari yang terbaru (berdasarkan ID timestamp)
+      prompts.sort((a:any, b:any) => parseInt(b.id.split('-')[1]) - parseInt(a.id.split('-')[1]));
+
       prompts.forEach((p: any) => {
-        // Encode text body agar aman saat dimasukkan ke dalam atribut HTML
-        const safeBody = encodeURIComponent(p.body);
+        const safeBody = encodeURIComponent(p.body); // Encode biar aman di HTML attribute
 
         const cardHTML = `
-          <article class="prompt-card group relative flex flex-col justify-between p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-blue-200 dark:border-blue-900 shadow-sm" data-role="Personal" data-category="Draft">
-            <div>
-              <div class="flex justify-between items-start mb-4">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300">
-                  PERSONAL
-                </span>
-                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">DRAFT</span>
-              </div>
-              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          <article class="prompt-card personal-draft group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-purple-200 dark:border-purple-900/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full" 
+            data-role="Personal" 
+            data-category="Draft"
+            id="${p.id}"
+          >
+            <div class="absolute top-0 right-0 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 text-[10px] font-bold px-3 py-1 rounded-bl-xl z-20">
+              PERSONAL DRAFT
+            </div>
+
+            <div class="p-6 pb-2">
+               <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-2 pr-12">
                 ${p.data.title}
               </h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+              <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 min-h-[2.5em]">
                 ${p.data.description}
               </p>
             </div>
-            <div class="mb-4">
-              <div class="relative bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800 p-4 font-mono text-sm text-gray-700 dark:text-gray-300 overflow-hidden">
-                 <div class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent pointer-events-none"></div>
-                 <p class="line-clamp-3 whitespace-pre-wrap">${p.body}</p>
+
+            <div class="px-6 py-2 flex-grow">
+              <div class="relative bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-800 p-3 font-mono text-xs text-gray-600 dark:text-gray-300">
+                <p class="line-clamp-3 leading-relaxed opacity-80">${p.body}</p>
+                 <div class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-50 dark:from-gray-900/50 to-transparent pointer-events-none rounded-b-lg"></div>
               </div>
             </div>
-            <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
-              <span class="text-xs text-gray-400">Disimpan di Browser</span>
-              <button onclick="
-                const text = decodeURIComponent('${safeBody}');
-                navigator.clipboard.writeText(text).then(() => {
-                   window.dispatchEvent(new CustomEvent('toast-copy'));
-                });
-              " class="text-xs font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg dark:bg-blue-900/30 dark:text-blue-300 transition-colors cursor-pointer ml-auto">
-                Copy
-              </button>
+
+            <div class="p-4 pt-2 mt-auto border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-3 relative z-10">
+               <button 
+                  class="btn-delete flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
+                  data-id="${p.id}"
+                  title="Hapus Draft"
+               >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>Hapus</span>
+               </button>
+
+               <button 
+                  class="btn-copy-card flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-100 rounded-lg hover:bg-purple-100 transition-colors ml-auto"
+                  data-body="${safeBody}" 
+                  title="Copy Prompt"
+               >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy</span>
+               </button>
             </div>
           </article>
         `;
-        // Masukkan ke grid paling depan
+        // Inject sebagai kartu pertama (terbaru)
         grid.insertAdjacentHTML('afterbegin', cardHTML);
       });
     } catch (e) {
-      console.error("Gagal memuat draft:", e);
+      console.error("Gagal load draft:", e);
     }
   }
 
-  // Listener untuk menangkap event copy dari tombol personal
-  window.addEventListener('toast-copy', () => {
-    addToast('Draft Personal berhasil disalin!', 'success');
+  // --- 2. PAGINATION & RENDER LOGIC ---
+  function updateGridVisibility() {
+    const cards = document.querySelectorAll('.prompt-card');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const roleSelect = document.getElementById('role-filter') as HTMLSelectElement;
+    const categorySelect = document.getElementById('category-filter') as HTMLSelectElement;
+
+    const query = searchInput?.value.toLowerCase() || '';
+    const role = roleSelect?.value || 'all';
+    const cat = categorySelect?.value || 'all';
+
+    let matchCount = 0;
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const htmlCard = card as HTMLElement;
+      // Ambil data untuk filter (Official / Personal punya struktur sama)
+      const cardRole = htmlCard.dataset.role;
+      const cardCat = htmlCard.dataset.category;
+      const cardContent = htmlCard.textContent?.toLowerCase() || '';
+
+      const matchSearch = cardContent.includes(query);
+      const matchRole = role === 'all' || cardRole === role;
+      const matchCat = cat === 'all' || cardCat === cat;
+      const isMatch = matchSearch && matchRole && matchCat;
+
+      if (isMatch) {
+        matchCount++;
+        // Logic Pagination: Hanya tampilkan jika urutan match < limit
+        if (matchCount <= visibleLimit) {
+          htmlCard.style.display = 'flex'; // Pakai flex untuk prompt-card
+          visibleCount++;
+        } else {
+          htmlCard.style.display = 'none';
+        }
+      } else {
+        htmlCard.style.display = 'none';
+      }
+    });
+
+    // Update UI State
+    if (noResult) noResult.style.display = matchCount === 0 ? 'block' : 'none';
+    
+    // Update Load More Button
+    if (paginationControls) {
+        if (matchCount > visibleLimit) {
+            paginationControls.classList.remove('hidden');
+            if (showingCountLabel) showingCountLabel.innerText = visibleLimit.toString();
+            if (totalCountLabel) totalCountLabel.innerText = matchCount.toString();
+        } else {
+            paginationControls.classList.add('hidden');
+        }
+        // Jika filter aktif dan hasil sedikit, sembunyikan pagination container jika semua sudah tampil
+        if (matchCount > 0 && matchCount <= visibleLimit) {
+             paginationControls.classList.add('hidden');
+        }
+    }
+  }
+
+  // --- 3. EVENT HANDLERS ---
+
+  // Event Listener Global untuk Tombol Dinamis (Copy & Delete)
+  document.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+    
+    // Handle COPY (Baik Official maupun Personal)
+    const copyBtn = target.closest('.btn-copy-card');
+    if (copyBtn) {
+        const btnElement = copyBtn as HTMLElement;
+        let text = btnElement.dataset.body || '';
+        // Decode kalau berasal dari Personal Card (karena di-encode saat render)
+        if (text.includes('%')) {
+            try { text = decodeURIComponent(text); } catch(e) {}
+        }
+        
+        try {
+            await navigator.clipboard.writeText(text);
+            addToast('Prompt berhasil disalin!', 'success');
+        } catch (err) {
+            addToast('Gagal copy text', 'error');
+        }
+        return;
+    }
+
+    // Handle DELETE (Hanya Personal)
+    const deleteBtn = target.closest('.btn-delete');
+    if (deleteBtn) {
+        if(!confirm('Yakin ingin menghapus draft ini selamanya?')) return;
+        
+        const btnElement = deleteBtn as HTMLElement;
+        const idToDelete = btnElement.dataset.id;
+        
+        // 1. Hapus dari LocalStorage
+        const saved = localStorage.getItem('my_prompts');
+        if (saved) {
+            const prompts = JSON.parse(saved);
+            const updated = prompts.filter((p: any) => p.id !== idToDelete);
+            localStorage.setItem('my_prompts', JSON.stringify(updated));
+        }
+
+        // 2. Hapus dari DOM dengan animasi
+        const cardElement = document.getElementById(idToDelete || '');
+        if (cardElement) {
+            cardElement.style.opacity = '0';
+            cardElement.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                cardElement.remove();
+                // Update pagination setelah hapus
+                updateGridVisibility();
+                addToast('Draft berhasil dihapus.', 'info');
+            }, 300);
+        }
+    }
   });
 
-  // Jalankan saat halaman siap
-  document.addEventListener('DOMContentLoaded', loadPersonalPrompts);
+  // Handle Filter Change (Reset Pagination)
+  const filters = ['search-input', 'role-filter', 'category-filter', 'reset-filters'];
+  filters.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) {
+        el.addEventListener(id === 'search-input' ? 'input' : 'change', () => {
+             visibleLimit = ITEMS_PER_PAGE; // Reset ke halaman 1 setiap filter berubah
+             // Pakai debounce untuk search (opsional, tapi filterBar.astro sudah punya logic sendiri)
+             // Kita "nebeng" event listener filterBar yang mengubah display, 
+             // TAPI karena kita butuh kontrol Pagination, kita override logic filterBar disini.
+             // TIPS: Matikan script filter bawaan di FilterBar.astro atau biarkan ini menimpa style.display
+             setTimeout(updateGridVisibility, 10); 
+        });
+        if(id === 'reset-filters') {
+            el.addEventListener('click', () => {
+                visibleLimit = ITEMS_PER_PAGE;
+                setTimeout(updateGridVisibility, 50);
+            });
+        }
+    }
+  });
+
+  // Handle Load More
+  loadMoreBtn?.addEventListener('click', () => {
+    visibleLimit += ITEMS_PER_PAGE;
+    updateGridVisibility();
+  });
+
+  // INITIALIZATION
+  document.addEventListener('DOMContentLoaded', () => {
+    loadPersonalPrompts();
+    // Tunggu sebentar biar DOM render, lalu apply pagination awal
+    setTimeout(updateGridVisibility, 50);
+  });
+
 </script>
