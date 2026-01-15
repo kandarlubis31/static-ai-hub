@@ -1,7 +1,10 @@
+/* --- SYNTAX TAILWIND V4 --- */
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer components {
-  /* Class Utility untuk Form Builder agar kodingan React bersih */
+  /* Class Utility untuk Form Builder */
   .form-input {
     @apply w-full p-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 dark:text-gray-100;
   }
@@ -34,17 +37,17 @@
   animation: fadeIn 0.2s ease-out forwards;
 }
 
-/* Custom Scrollbar untuk Preview Box */
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #111827; /* gray-900 */
+  background: #111827;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #374151; /* gray-700 */
+  background-color: #374151;
   border-radius: 3px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #4b5563; /* gray-600 */
+  background-color: #4b5563;
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'preact/hooks';
-import { Copy, Trash2, Zap, Save, Check } from 'lucide-preact';
+import { Copy, Trash2, Zap, Save, Download } from 'lucide-preact'; // Tambah Icon Download
 import { addToast } from '../../lib/toastStore';
 
 // Definisi Tipe Data Form
@@ -12,7 +12,7 @@ interface FormData {
   language: string;
 }
 
-// Data Presets (Dipisah biar rapi)
+// Data Presets (Dipisah biar rapi & performa lebih baik)
 const PRESETS = {
   coding: {
     role: 'Senior Software Engineer',
@@ -52,8 +52,6 @@ export default function PromptBuilder() {
 
   const [formData, setFormData] = useState<FormData>(defaultState);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  
-  // State 'saved' & 'copied' lokal dihapus karena pakai Global Toast
 
   // --- LOGIC PRESET ---
   const applyPreset = (type: keyof typeof PRESETS) => {
@@ -67,13 +65,36 @@ export default function PromptBuilder() {
     addToast('Form berhasil direset', 'info');
   };
 
-  // Type Safe Event Handler
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // --- USE MEMO (Optimasi) ---
+  // --- FITUR BARU: BACKUP DATA (Download JSON) ---
+  const handleBackup = () => {
+    try {
+      const saved = localStorage.getItem('my_prompts');
+      if (!saved || saved === '[]') {
+        addToast('Belum ada draft untuk dibackup', 'info');
+        return;
+      }
+      
+      // Buat file JSON dan download otomatis
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(saved);
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `static-ai-hub-backup-${Date.now()}.json`);
+      document.body.appendChild(downloadAnchorNode); // required for firefox
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      
+      addToast('Backup berhasil didownload!', 'success');
+    } catch (e) {
+      addToast('Gagal membackup data', 'error');
+    }
+  };
+
+  // --- USE MEMO (Generator Prompt) ---
   const generatedPrompt = useMemo(() => {
     return `Act as a ${formData.role || '[ROLE]'}.
 Your task is to: ${formData.task || '[TASK]'}
@@ -136,14 +157,25 @@ Output format: ${formData.format}.`;
               <Zap size={14} className="text-yellow-500" /> Quick Fill (Contoh)
             </p>
             
-            {/* Tombol Reset */}
-            <button 
-              onClick={() => setShowResetConfirm(true)} 
-              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded" 
-              title="Reset Form"
-            >
-              <Trash2 size={16} />
-            </button>
+            <div className="flex gap-1">
+                {/* Tombol Backup */}
+                <button 
+                  onClick={handleBackup} 
+                  className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors rounded" 
+                  title="Backup semua draft (Download JSON)"
+                >
+                  <Download size={16} />
+                </button>
+
+                {/* Tombol Reset */}
+                <button 
+                  onClick={() => setShowResetConfirm(true)} 
+                  className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded" 
+                  title="Reset Form"
+                >
+                  <Trash2 size={16} />
+                </button>
+            </div>
           </div>
 
           {/* Dialog Konfirmasi Reset */}

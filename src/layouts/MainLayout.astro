@@ -25,6 +25,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
@@ -49,6 +51,41 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost
       if (getTheme() === 'dark') document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
     </script>
+
+    <style is:global>
+      /* Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+      }
+      .dark * {
+        scrollbar-color: #475569 transparent;
+      }
+
+      /* Chrome, Edge, Safari */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 20px;
+        border: 3px solid transparent;
+        background-clip: content-box;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #94a3b8;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background-color: #475569;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background-color: #64748b;
+      }
+    </style>
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300">
     
@@ -100,19 +137,43 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost
       const iconMenu = document.getElementById('icon-menu');
       const iconClose = document.getElementById('icon-close');
       const links = document.querySelectorAll('.mobile-link');
+      const nav = document.querySelector('nav');
 
       const toggleMenu = () => {
-        menu?.classList.toggle('hidden');
-        iconMenu?.classList.toggle('hidden');
-        iconClose?.classList.toggle('hidden');
+        const isHidden = menu?.classList.contains('hidden');
+        if (isHidden) {
+          menu?.classList.remove('hidden');
+          iconMenu?.classList.add('hidden');
+          iconClose?.classList.remove('hidden');
+        } else {
+          menu?.classList.add('hidden');
+          iconMenu?.classList.remove('hidden');
+          iconClose?.classList.add('hidden');
+        }
       };
 
-      btn?.addEventListener('click', toggleMenu);
+      btn?.addEventListener('click', (e) => {
+        e.stopPropagation(); // Mencegah event bubbling ke document
+        toggleMenu();
+      });
 
+      // Tutup menu saat link diklik
       links.forEach(link => {
         link.addEventListener('click', () => {
           if (!menu?.classList.contains('hidden')) toggleMenu();
         });
+      });
+
+      // FITUR BARU: Tutup menu saat klik di luar area menu
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const isMenuOpen = !menu?.classList.contains('hidden');
+        const isClickInsideMenu = menu?.contains(target);
+        const isClickButton = btn?.contains(target);
+
+        if (isMenuOpen && !isClickInsideMenu && !isClickButton) {
+          toggleMenu();
+        }
       });
     </script>
   </body>
