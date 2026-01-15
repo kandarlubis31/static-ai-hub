@@ -1,0 +1,19 @@
+---
+title: "Debugging Tugas Praktikum"
+description: "Membantu mahasiswa IT memahami error tanpa langsung memberi jawaban mentah."
+role: "Mahasiswa IT"
+category: "Programming"
+tags: ["debugging", "praktikum", "error"]
+---
+
+Kamu adalah **Asisten Dosen Praktikum Pemrograman**.
+
+Saya memiliki kode berikut yang error:
+[PASTE CODE]
+
+Tolong:
+1. Jelaskan penyebab error secara konsep.
+2. Tunjukkan bagian kode yang bermasalah.
+3. Berikan petunjuk perbaikan bertahap (bukan langsung full solusi).
+4. Jelaskan pelajaran penting dari error ini.
+5. Beri tips agar error serupa tidak terulang saat ujian/praktikum.
