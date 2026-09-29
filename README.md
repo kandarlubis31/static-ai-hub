@@ -1,46 +1,37 @@
-# Astro Starter Kit: Basics
+# static-ai-hub
 
-```sh
-npm create astro@latest -- --template basics
+## Tentang Project
+
+Node.js; deps: @astrojs/preact, @nanostores/preact, @tailwindcss/vite, astro, lucide-preact, nanostores, preact, tailwindcss > bagian ringkasan / arsitektur secara manual jika butuh detail lebih dalam.*
+
+## Tech Stack
+
+Node.js; deps: @astrojs/preact, @nanostores/preact, @tailwindcss/vite, astro, lucide-preact, nanostores, preact, tailwindcss
+
+## Struktur Utama
+
+```
+public/
+src/
+.gitignore
+astro.config.mjs
+CONTEXT.md
+package-lock.json
+package.json
+README.md
+tailwind.config.mjs
+tsconfig.json
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Menjalankan
 
-## 🚀 Project Structure
+- `npm run dev`
+- `npm run build`
 
-Inside of your Astro project, you'll see the following folders and files:
+---
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+*Generated: 2026-08-08 · Path: Astro SSG\static-ai-hub*
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+---
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Lihat `CONTEXT.md` di folder ini untuk detail arsitektur.
