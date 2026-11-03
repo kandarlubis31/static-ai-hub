@@ -1,32 +1,48 @@
 # static-ai-hub — Project Context
 
 ## Ringkasan
-Node.js; deps: @astrojs/preact, @nanostores/preact, @tailwindcss/vite, astro, lucide-preact, nanostores, preact, tailwindcss
 
-> *Context ini dibuat otomatis oleh `catalog/generate_contexts.py`. Isi ulang
-> bagian ringkasan / arsitektur secara manual jika butuh detail lebih dalam.*
+Kumpulan prompt AI yang bisa dicari, difilter, dan disalin. Situs statis: setiap prompt adalah satu
+berkas Markdown di dalam content collection, sehingga menambah prompt berarti menambah berkas, bukan
+menyentuh komponen.
 
-## Tech Stack
-Node.js; deps: @astrojs/preact, @nanostores/preact, @tailwindcss/vite, astro, lucide-preact, nanostores, preact, tailwindcss
+## Arsitektur
 
-## Struktur Utama
+Astro membangun halaman dari koleksi konten (`src/content/prompts/*.md`) dengan skema di
+`src/content/config.ts`. Interaksi yang butuh state dipisahkan sebagai pulau Preact:
+
+| Komponen | Peran |
+| :--- | :--- |
+| `FilterBar.astro` | Filter kategori/tag (dirender Astro) |
+| `PromptBuilder.tsx` | Menyusun prompt dari pilihan pengguna |
+| `CopyButton.tsx` | Menyalin isi prompt ke clipboard |
+| `RatingSystem.tsx` | Penilaian prompt, disimpan lokal di browser |
+| `ThemeToggle.tsx` | Mode terang/gelap |
+
+State lintas pulau memakai **nanostores**, karena tiap pulau adalah aplikasi terpisah dan tidak bisa
+berbagi React context.
+
+## Struktur
+
 ```
-public/
-src/
-.gitignore
-astro.config.mjs
-CONTEXT.md
-package-lock.json
-package.json
-README.md
-tailwind.config.mjs
-tsconfig.json
+src/content/prompts/   Satu berkas Markdown per prompt (frontmatter: judul, kategori, tag)
+src/content/config.ts  Skema frontmatter
+src/components/ui/     Tampilan kartu, footer
+src/components/interactive/  Pulau Preact
+src/assets/            Gambar
 ```
 
-## Cara Menjalankan
-- `npm run dev`
-- `npm run build`
+## Menjalankan
 
----
+```bash
+pnpm install
+pnpm dev       # http://localhost:4321
+pnpm build && pnpm preview
+```
 
-*Generated: 2026-08-08 · Path: Astro SSG\static-ai-hub*
+## Catatan
+
+- Hasil rating hanya tersimpan di browser pengguna; tidak ada backend, jadi tidak ada data terpusat.
+- Berkas prompt yang frontmatter-nya tidak sesuai skema akan menggagalkan build — periksa pesan
+  Astro, biasanya menunjuk berkas yang salah.
+- Menambah kategori baru berarti memperbarui skema, bukan hanya menaruh tag di Markdown.
