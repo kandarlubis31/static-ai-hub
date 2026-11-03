@@ -1,83 +1,58 @@
 # static-ai-hub
 
-A prompt library that runs entirely in the browser. No database, no API, no server — every
-prompt is a Markdown file compiled into the static build.
+Kumpulan prompt AI yang bisa dicari, difilter, disusun, dan disalin. Saat ini berisi 101 prompt.
 
-## What it is
+Situs statis sepenuhnya: tidak ada backend, tidak ada basis data, tidak ada akun. Rating disimpan di
+browser masing-masing pengguna.
 
-A curated collection of AI prompts, each with a role, a category and tags, browsable and
-searchable. You can copy a prompt as-is, or feed it into a builder that assembles the final text
-from the parameters you choose. Ratings are kept locally.
+## Isi
 
-Because the content is a static Astro collection, adding a prompt means adding one Markdown file
-and rebuilding — there is no CMS to log into and nothing to keep running.
+- **Pencarian & filter** per kategori dan tag.
+- **Prompt builder** — susun prompt dari pilihan peran, konteks, dan format keluaran.
+- **Tombol salin** sekali klik.
+- **Rating** dengan penyimpanan lokal.
+- **Mode terang/gelap**.
 
-## How it works
+## Menambah prompt
 
-- **Content collection.** `src/content/config.ts` defines the prompt schema: `title`,
-  `description`, `role`, `category`, `tags[]`. Each prompt is a Markdown file under
-  `src/content/prompts/`.
-- **Filtering.** `FilterBar.astro` narrows the collection by category, role and tags.
-- **Prompt builder.** `PromptBuilder.tsx` composes a final prompt from selected fields.
-- **Ratings.** `RatingSystem.tsx` persists votes in the browser; nothing is sent anywhere.
-- **Copy.** `CopyButton.tsx` writes the prompt to the clipboard.
-- **Theming.** `ThemeToggle.tsx` switches light/dark, with the choice kept client-side.
-
-Interactivity is **Preact islands** (`@astrojs/preact`) rather than a full SPA — the page ships
-as HTML and only the interactive bits hydrate. State across islands is shared through
-`nanostores`.
-
-## Stack
-
-Astro 5 · Preact 10 · Tailwind CSS 4 · nanostores · lucide icons
-
-## Run
-
-```bash
-pnpm install
-pnpm dev
-```
-
-Build and preview the static output:
-
-```bash
-pnpm build
-pnpm preview
-```
-
-`pnpm build` emits a fully static `dist/` that can be served from any file host, CDN or object
-storage.
-
-## Adding a prompt
-
-Create `src/content/prompts/your-prompt.md`:
+Buat satu berkas Markdown di `src/content/prompts/`. Namanya menjadi slug URL:
 
 ```markdown
 ---
-title: Your prompt title
-description: One line on what it does
-role: Product Manager
-category: Research
-tags: [interview, synthesis]
+title: "3D Cartoon Style"
+description: "Mengubah foto menjadi karakter kartun 3D bergaya modern."
+role: "3D Character Artist"
+category: "Image"
+tags: ["3d", "cartoon", "character"]
 ---
 
-The prompt text goes here.
+Kamu adalah **3D Character Artist**. …
 ```
 
-`astro check` / `pnpm build` fails if a required front-matter field is missing, so a malformed
-prompt cannot silently reach production.
+Frontmatter divalidasi skema di `src/content/config.ts`. Kategori atau tag yang salah bentuk akan
+menggagalkan build, bukan muncul sebagai halaman rusak.
 
-## Structure
+## Menjalankan
 
-```
-src/
-  content/config.ts              prompt schema
-  content/prompts/*.md           the library itself
-  components/interactive/        Preact islands (builder, filter, rating, copy, theme)
-  components/ui/                 static Astro pieces (PromptCard, Footer, ToastContainer)
-  pages/                         routes
+```bash
+pnpm install
+pnpm dev       # http://localhost:4321
+pnpm build && pnpm preview
 ```
 
-## License
+## Struktur
 
-MIT
+```
+src/content/prompts/       Satu berkas per prompt
+src/content/config.ts      Skema frontmatter
+src/components/interactive/  Builder, tombol salin, rating, toggle tema (Preact)
+src/components/ui/         Kartu, footer
+```
+
+Halaman dibangun Astro; bagian yang butuh state dijalankan sebagai pulau Preact yang berbagi state
+lewat nanostores.
+
+## Catatan
+
+- Rating hanya tersimpan di browser, jadi tidak ada angka global dan tidak ada yang bisa dimanipulasi dari sisi server.
+- Hasil builder disusun dari pilihan pengguna di sisi klien; tidak ada prompt yang dikirim ke model dari situs ini.
