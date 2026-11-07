@@ -56,3 +56,9 @@ lewat nanostores.
 
 - Rating hanya tersimpan di browser, jadi tidak ada angka global dan tidak ada yang bisa dimanipulasi dari sisi server.
 - Hasil builder disusun dari pilihan pengguna di sisi klien; tidak ada prompt yang dikirim ke model dari situs ini.
+
+---
+
+## English
+
+**static-ai-hub** is a collection of AI prompts you can search, filter, arrange, and copy — currently 101 of them. The site is fully static: no backend, no database, no accounts, and ratings are stored in the browser.
